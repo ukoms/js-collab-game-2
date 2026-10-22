@@ -45,6 +45,7 @@ function status() {
   console.log("Karta: " + (stan.karta ? "tak" : "nie"));
   console.log("Bezpiecznik: " + (stan.bezpiecznik ? "tak" : "nie"));
   console.log("Zasilanie: " + (stan.zasilanie ? "wlaczone" : "wylaczone"));
+  console.log("Kaszubowanie: " + (stan.kaszubowanie ? "tak" : "nie"));
   console.log("Stan gry: " + (stan.wygrana ? "wygrana" : stan.koniec ? "przegrana" : "trwa"));
 
   return { ...stan };
@@ -77,7 +78,13 @@ function rozejrzyj() {
       break;
 
     case 4:
-      console.log('Wyjscie. Aby uciec, wpisz gra.akcja("wyjdz").');
+      console.log('Wyjscie. Aby uciec, wpisz gra.akcja("wyjdz"). Zza drzwi po prawej slychac kaszubskie spiewy.');
+      break;
+
+    case 5:
+      console.log("Kaszubownia. " + (stan.kaszubowanie
+        ? "Filip nuci \"Kaszebsczé note\" i macha Ci na pozegnanie."
+        : 'Przy stole z tabaka siedzi Filip Jazewicz i macha do Ciebie. Wpisz gra.akcja("kaszubuj").'));
       break;
   }
 }
@@ -89,6 +96,7 @@ function pomoc() {
   console.log('Przedmioty: gra.akcja("karta"), gra.akcja("bezpiecznik")');
   console.log('Naprawa: gra.akcja("napraw")');
   console.log('Ucieczka: gra.akcja("wyjdz")');
+  console.log('Kaszubowanie: gra.akcja("kaszubuj")');
   console.log("Reset: gra.start()");
   console.log("Eksport: gra.eksportuj()");
   console.log('Import: gra.importuj(prompt("Wklej JSON"))');
@@ -108,7 +116,7 @@ function start() {
 function eksportuj() {
   return JSON.stringify(
     {
-      wersja: 1,
+      wersja: 2,
       stan: {
         pokoj: stan.pokoj,
         energia: stan.energia,
@@ -116,7 +124,8 @@ function eksportuj() {
         bezpiecznik: stan.bezpiecznik,
         zasilanie: stan.zasilanie,
         koniec: stan.koniec,
-        wygrana: stan.wygrana
+        wygrana: stan.wygrana,
+        kaszubowanie: stan.kaszubowanie
       }
     },
     null,
@@ -145,18 +154,24 @@ function importuj(tekst) {
     return false;
   }
 
-  if (pakiet.wersja !== 1) {
+  if (pakiet.wersja !== 1 && pakiet.wersja !== 2) {
     console.log("Blad importu: nieobslugiwana wersja zapisu.");
     return false;
   }
 
-  if (!czyStan(pakiet.stan)) {
+  let s = pakiet.stan;
+
+  // Zapis w wersji 1 nie zna Kaszubowni, wiec uzupelniamy brakujace pole.
+  if (pakiet.wersja === 1 && s !== null && typeof s === "object" && !Array.isArray(s)) {
+    s = { ...s, kaszubowanie: false };
+  }
+
+  if (!czyStan(s)) {
     console.log("Blad importu: stan gry jest niepoprawny.");
     return false;
   }
 
   // Tworzymy nowy obiekt tylko ze znanych pol.
-  const s = pakiet.stan;
 
   const nowyStan = {
     pokoj: s.pokoj,
@@ -165,7 +180,8 @@ function importuj(tekst) {
     bezpiecznik: s.bezpiecznik,
     zasilanie: s.zasilanie,
     koniec: s.koniec,
-    wygrana: s.wygrana
+    wygrana: s.wygrana,
+    kaszubowanie: s.kaszubowanie
   };
 
   // Podmieniamy stan dopiero po poprawnej walidacji.

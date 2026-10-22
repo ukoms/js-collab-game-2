@@ -5,7 +5,8 @@ const POKOJE = [
   { id: 1, nazwa: "Recepcja" },
   { id: 2, nazwa: "Magazyn" },
   { id: 3, nazwa: "Serwerownia" },
-  { id: 4, nazwa: "Wyjscie" }
+  { id: 4, nazwa: "Wyjscie" },
+  { id: 5, nazwa: "Kaszubownia" }
 ];
 
 function stanPoczatkowy() {
@@ -16,7 +17,8 @@ function stanPoczatkowy() {
     bezpiecznik: false,
     zasilanie: false,
     koniec: false,
-    wygrana: false
+    wygrana: false,
+    kaszubowanie: false
   };
 }
 
@@ -34,7 +36,10 @@ function wynikSukcesu(stan, zmiany, komunikat) {
   const nowy = { ...stan, ...zmiany, energia: stan.energia - 1 };
   if (nowy.wygrana) {
     nowy.koniec = true;
-    return { stan: nowy, komunikat: komunikat + " WYGRANA! Drzwi otwarte." };
+    const final = nowy.kaszubowanie
+      ? " WYGRANA! Drzwi otwarte. Filip krzyczy za Toba: \"Do widzenio!\""
+      : " WYGRANA! Drzwi otwarte.";
+    return { stan: nowy, komunikat: komunikat + final };
   }
   if (nowy.energia === 0) {
     nowy.koniec = true;
@@ -84,9 +89,19 @@ function przejscie(stanPrzed, komenda) {
       }
       return wynikSukcesu(stanPrzed, { wygrana: true }, "Otwierasz drzwi i uciekasz z serwerowni!");
 
+    case "kaszubuj":
+      if (stanPrzed.pokoj !== 5) {
+        return wynikOdmowy(stanPrzed, "Tu nikt nie kaszubuje.");
+      }
+      if (stanPrzed.kaszubowanie) {
+        return wynikOdmowy(stanPrzed, "Filip juz Cie nauczyl, wystarczy na dzis.");
+      }
+      return wynikSukcesu(stanPrzed, { kaszubowanie: true },
+        "Filip Jazewicz wstaje od stolu: \"Witojtaz! Jo jem Filip. Godoj ze mna: 'To je wszetko nasze, kaszebsczé!'\" Powtarzasz. Filip jest dumny jak tabakiera.");
+
     default:
       return wynikOdmowy(stanPrzed,
-        "Nieznana komenda. Uzyj: lewo, prawo, karta, bezpiecznik, napraw, wyjdz.");
+        "Nieznana komenda. Uzyj: lewo, prawo, karta, bezpiecznik, napraw, wyjdz, kaszubuj.");
   }
 }
 
@@ -101,7 +116,7 @@ function czyStan(wartosc) {
   if (!Number.isInteger(wartosc.energia) || wartosc.energia < 0 || wartosc.energia > MAKS_ENERGIA) {
     return false;
   }
-  const flagi = ["karta", "bezpiecznik", "zasilanie", "koniec", "wygrana"];
+  const flagi = ["karta", "bezpiecznik", "zasilanie", "koniec", "wygrana", "kaszubowanie"];
   for (const pole of flagi) {
     if (typeof wartosc[pole] !== "boolean") {
       return false;
