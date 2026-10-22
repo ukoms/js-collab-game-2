@@ -14,28 +14,20 @@ function wykonaj(komenda) {
   return wynik;
 }
 
+// Nieznane komendy odrzuca silnik, wiec aplikacja ich tu nie sprawdza.
 function idz(kierunek) {
-  if (kierunek !== "lewo" && kierunek !== "prawo") {
-    console.log("Nieznany kierunek. Mozesz isc w lewo lub prawo.");
-    return false;
+  const pokojPrzed = stan.pokoj;
+  const wynik = wykonaj(kierunek);
+
+  // Po udanym ruchu pokazujemy opis nowego pomieszczenia
+  if (stan.pokoj !== pokojPrzed) {
+    rozejrzyj();
   }
 
-  return wykonaj(kierunek);
+  return wynik;
 }
 
 function akcja(co) {
-  const dozwolone = [
-    "karta",
-    "bezpiecznik",
-    "napraw",
-    "wyjdz"
-  ];
-
-  if (!dozwolone.includes(co)) {
-    console.log("Nieznana akcja. Uzyj: karta, bezpiecznik, napraw, wyjdz");
-    return false;
-  }
-
   return wykonaj(co);
 }
 
